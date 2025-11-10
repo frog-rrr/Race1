@@ -33,6 +33,7 @@ class GameViewModel : ViewModel() {
         circleX += x
         circleY += y
     }
+    val horse = Horse()
 
     fun startGame() {
         gameRunning = true
@@ -41,6 +42,11 @@ class GameViewModel : ViewModel() {
 
         viewModelScope.launch {
             while (gameRunning) {
+                horse.HorseRun()
+                if (horse.horseX >= screenWidthPx - 200){
+                    horse.horseX = 0
+                }
+
                 delay(100)
                 circleX += 10
 
