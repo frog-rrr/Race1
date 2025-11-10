@@ -33,19 +33,26 @@ class GameViewModel : ViewModel() {
         circleX += x
         circleY += y
     }
-    val horse = Horse()
+    val horses = mutableListOf<Horse>()
+
 
     fun startGame() {
         gameRunning = true
         circleX = 100f
         circleY = screenHeightPx - 100f
+        for (i in 0..2){
+            horses.add(Horse(i))
+        }
 
         viewModelScope.launch {
             while (gameRunning) {
-                horse.HorseRun()
-                if (horse.horseX >= screenWidthPx - 200){
-                    horse.horseX = 0
+                for (i in 0..2){
+                    horses[i].HorseRun()
+                    if (horses[i].horseX >= screenWidthPx - 200){
+                        horses[i].horseX = 0
+                    }
                 }
+
 
                 delay(100)
                 circleX += 10

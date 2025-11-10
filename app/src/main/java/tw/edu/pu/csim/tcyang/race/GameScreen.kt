@@ -80,10 +80,16 @@ fun GameScreen(
             center = Offset(circleX, circleY) // 位置隨著狀態更新而改變
         )
 
-        drawImage(
-            image = imageBitmap,
-            dstOffset = IntOffset(0, 100), // 靜態位置
-            dstSize = IntSize(200, 200)
-        )
+        for(i in 0..2){
+            drawImage(
+                image = imageBitmaps[gameViewModel.horses[i].number],
+                dstOffset = IntOffset(
+                    gameViewModel.horses[i].horseX,
+                    gameViewModel.horses[i].horseY),
+                dstSize = IntSize(200, 200)
+            )
+        }
+
+
     }
 }
