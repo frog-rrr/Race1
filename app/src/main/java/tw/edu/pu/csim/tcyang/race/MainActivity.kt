@@ -6,12 +6,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
@@ -19,6 +14,9 @@ import androidx.window.layout.WindowMetricsCalculator
 import tw.edu.pu.csim.tcyang.race.ui.theme.賽馬raceTheme
 
 class MainActivity : ComponentActivity() {
+    // 實例化 ViewModel
+    private val gameViewModel: GameViewModel by viewModels()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -26,7 +24,7 @@ class MainActivity : ComponentActivity() {
         //強迫橫式螢幕
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE)
 
-        // 隱藏狀態列：獲取 WindowInsetsController，再隱藏statusBars
+        // 隱藏狀態列
         val windowInsetsController = WindowCompat.getInsetsController(window, window.decorView)
         windowInsetsController.hide(WindowInsetsCompat.Type.statusBars())
         // 確保內容延伸到至邊緣
@@ -46,35 +44,30 @@ class MainActivity : ComponentActivity() {
 
         val screenWidthPx = bounds.width().toFloat()
         val screenHeightPx = bounds.height().toFloat()
-        // 實例化 ViewModel
 
-        val gameViewModel: GameViewModel by viewModels()
-        gameViewModel.setGameSize(screenWidthPx,screenHeightPx)
+        // 將螢幕尺寸傳給 ViewModel
+        gameViewModel.setGameSize(screenWidthPx, screenHeightPx)
 
         setContent {
             賽馬raceTheme {
-                GameScreen(message = "橫式螢幕，隱藏狀態列")
-
-                }
+                // 將 gameViewModel 實例傳遞給 GameScreen
+                GameScreen(
+                    message = "賽馬遊戲(作者：李念恩)",
+                    gameViewModel = gameViewModel
+                )
             }
         }
     }
-
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-
 }
 
-
+// 由於遊戲邏輯集中在 GameScreen，Greeting/Preview 保持不變或可移除。
+@Composable
+fun Greeting(name: String) {
+    // 保持原始結構
+}
 
 @Preview(showBackground = true)
 @Composable
 fun GreetingPreview() {
-    賽馬raceTheme {
-        Greeting("Android")
-    }
+    // 保持原始結構
 }

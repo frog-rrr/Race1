@@ -2,21 +2,22 @@ package tw.edu.pu.csim.tcyang.race
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.imageResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel // 引入 ViewModel 相關函式
 
 @Composable
@@ -25,14 +26,19 @@ fun GameScreen(
     // 透過參數或使用 viewModel() 取得 GameViewModel 實例
     gameViewModel: GameViewModel = viewModel()
 ) {
-    // 獲取當前螢幕密度，用於尺寸轉換 (雖然這裡主要用像素，但這是好的習慣)
-    val density = LocalDensity.current
+    // 取得 ViewModel 中的狀態
+    val horses = gameViewModel.horses
+    val winnerMessage = gameViewModel.winnerMessage
 
-    // 取得 ViewModel 中的狀態，當這些狀態改變時，Canvas 會自動重繪
+    // 圓形狀態
     val circleX = gameViewModel.circleX
     val circleY = gameViewModel.circleY
-    val gameRunning = gameViewModel.gameRunning
-    //載入圖片
+
+    // 讀取 updateTick 確保 Composable 觀察到狀態變化，從而觸發重繪
+    val updateTick = gameViewModel.updateTick
+
+
+    // 載入圖片 (假設 R.drawable.horse0 到 R.drawable.horse3 存在)
     val imageBitmaps = listOf(
         ImageBitmap.imageResource(R.drawable.horse0),
         ImageBitmap.imageResource(R.drawable.horse1),
@@ -40,57 +46,65 @@ fun GameScreen(
         ImageBitmap.imageResource(R.drawable.horse3)
     )
 
-
-
-    
     Box(modifier = Modifier
         .fillMaxSize()
+        // 背景換回黃色
         .background(Color.Yellow)
         // 使用 onSizeChanged 設定遊戲尺寸，並在尺寸確定後啟動遊戲
         .onSizeChanged { size ->
             // 將 Int 尺寸轉換為 Float 像素值
             gameViewModel.setGameSize(size.width.toFloat(), size.height.toFloat())
-            if (!gameRunning) {
+            if (!gameViewModel.gameRunning) {
                 gameViewModel.startGame()
             }
         }
-    ){
-        Text(text = message)
-    }
-
-    Canvas (modifier = Modifier
-        .fillMaxSize()
-        // 呼叫 ViewModel 實例的方法
-        .pointerInput(Unit) {
-            detectDragGestures { change, dragAmount ->
-                change.consume()
-                // 修正：使用 gameViewModel 實例來移動圓圈
-                gameViewModel.MoveCircle(dragAmount.x, dragAmount.y)
-            }
-
-        }
-
-    )
-
-    // 💥 修正：將 drawImage 移到 Canvas 的繪圖區塊內部
-    {
-        // 使用 ViewModel 中的 circleX 和 circleY 狀態來繪製
-        drawCircle(
-            color = Color.Red,
-            radius = 100f,
-            center = Offset(circleX, circleY) // 位置隨著狀態更新而改變
-        )
-
-        for(i in 0..2){
-            drawImage(
-                image = imageBitmaps[gameViewModel.horses[i].number],
-                dstOffset = IntOffset(
-                    gameViewModel.horses[i].horseX,
-                    gameViewModel.horses[i].horseY),
-                dstSize = IntSize(200, 200)
+    ) {
+        // --- 標題與勝者訊息區 ---
+        Column(
+            modifier = Modifier.align(Alignment.TopCenter),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            // 標題
+            Text(
+                text = message,
+                color = Color.Black, // 標題顏色改為黑色，在黃色背景上更清楚
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold
             )
+
+            // 勝者訊息 (顯示在標題下方)
+            winnerMessage?.let {
+                Text(
+                    text = it,
+                    color = Color.Red,
+                    fontSize = 32.sp,
+                    fontWeight = FontWeight.ExtraBold
+                )
+            }
         }
 
+        // --- 遊戲繪圖區 ---
+        Canvas(modifier = Modifier.fillMaxSize()) {
 
+            // 圓形繪製邏輯
+            drawCircle(
+                color = Color.Red,
+                radius = 100f,
+                center = Offset(circleX, circleY) // 位置隨著狀態更新而改變
+            )
+
+
+            // 繪製馬匹
+            horses.forEach { horse ->
+                // 檢查索引是否有效
+                val imageIndex = horse.number.coerceIn(0, imageBitmaps.size - 1)
+
+                drawImage(
+                    image = imageBitmaps[imageIndex],
+                    dstOffset = IntOffset(horse.horseX, horse.horseY),
+                    dstSize = IntSize(200, 200) // 假設馬匹圖片大小為 200x200
+                )
+            }
+        }
     }
 }
